@@ -18,15 +18,16 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 class DetectionValidator(BaseValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, fitness_weights=None):
         """Initialize detection model with necessary variables and settings."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'detect'
         self.is_coco = False
         self.class_map = None
-        self.metrics = DetMetrics(save_dir=self.save_dir)
+        self.metrics = DetMetrics(save_dir=self.save_dir, fitness_weights=fitness_weights)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
+        self.fitness_weights = fitness_weights
 
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""

@@ -636,10 +636,12 @@ class Metric(SimpleClass):
             maps[c] = self.ap[i]
         return maps
 
-    def fitness(self):
+    def fitness(self, w=None): # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         """Model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.array(self.mean_results()) * w).sum()
+        _w = [0.0, 0.0, 0.1, 0.9] # Default unless override
+        if w is not None:
+            _w = w
+        return (np.array(self.mean_results()) * _w).sum()
 
     def update(self, results):
         """
@@ -677,12 +679,13 @@ class DetMetrics(SimpleClass):
         results_dict: Returns a dictionary that maps detection metric keys to their computed values.
     """
 
-    def __init__(self, save_dir=Path('.'), plot=False, names=()) -> None:
+    def __init__(self, save_dir=Path('.'), plot=False, names=(), fitness_weights=None) -> None:
         self.save_dir = save_dir
         self.plot = plot
         self.names = names
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.fitness_weights = fitness_weights
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
@@ -712,7 +715,7 @@ class DetMetrics(SimpleClass):
     @property
     def fitness(self):
         """Returns the fitness of box object."""
-        return self.box.fitness()
+        return self.box.fitness(self.fitness_weights)
 
     @property
     def ap_class_index(self):

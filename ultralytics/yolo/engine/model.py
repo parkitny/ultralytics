@@ -90,6 +90,7 @@ class YOLO:
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.tags = []
+        self.fitness_weights = [0,0,0.1,0.9] # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -342,6 +343,9 @@ class YOLO:
     def set_tags(self, tags):
         self.tags = tags
         
+    def set_fitness_weights(self, weights):
+        self.fitness_weights = weights
+        
     def train(self, **kwargs):
         """
         Trains the model on a given dataset.
@@ -372,6 +376,7 @@ class YOLO:
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.tags = self.tags
+        self.trainer.fitness_weights = self.fitness_weights
         self.trainer.train()
         # Update model and cfg after training
         if RANK in (-1, 0):
