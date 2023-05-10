@@ -89,6 +89,7 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
+        self.tags = []
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -338,6 +339,9 @@ class YOLO:
             args.batch = 1  # default to 1 if not modified
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
+    def set_tags(self, tags):
+        self.tags = tags
+        
     def train(self, **kwargs):
         """
         Trains the model on a given dataset.
@@ -367,6 +371,7 @@ class YOLO:
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
+        self.trainer.tags = self.tags
         self.trainer.train()
         # Update model and cfg after training
         if RANK in (-1, 0):

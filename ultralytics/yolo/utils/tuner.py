@@ -36,7 +36,7 @@ default_space = {
     'copy_paste': tune.uniform(0.0, 1.0)}  # segment copy-paste (probability)
 
 task_metric_map = {
-    'detect': 'metrics/mAP50-95(B)',
+    'detect': 'metrics/mAP_0.5:0.95',
     'segment': 'metrics/mAP50-95(M)',
     'classify': 'metrics/accuracy_top1',
     'pose': 'metrics/mAP50-95(P)'}
