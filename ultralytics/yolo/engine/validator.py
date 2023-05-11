@@ -87,7 +87,7 @@ class BaseValidator:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None):
+    def __call__(self, trainer=None, model=None, tta=False):
         """
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
@@ -153,9 +153,12 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
+            tta = True
             # Inference
             with dt[1]:
-                preds = model(batch['img'])
+                if tta:
+                    aug_preds = model(batch['img'], augment=True)
+                preds = model(batch['img'], augment=False)
 
             # Loss
             with dt[2]:
@@ -164,12 +167,20 @@ class BaseValidator:
 
             # Postprocess
             with dt[3]:
+                if tta:
+                    aug_preds = self.postprocess(aug_preds)
                 preds = self.postprocess(preds)
 
-            self.update_metrics(preds, batch)
+            if tta:
+                self.update_metrics(aug_preds, batch)
+            else:
+                self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)
-                self.plot_predictions(batch, preds, batch_i)
+                if tta:
+                    self.plot_predictions(batch, aug_preds, batch_i)
+                else:
+                    self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks('on_val_batch_end')
         stats = self.get_stats()

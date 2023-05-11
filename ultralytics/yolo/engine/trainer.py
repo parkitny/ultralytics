@@ -133,6 +133,7 @@ class BaseTrainer:
         self.scheduler = None
 
         # Epoch level metrics
+        self.tta = False # Default no tta
         self.best_fitness = None
         self.fitness = None
         self.loss = None
@@ -461,7 +462,7 @@ class BaseTrainer:
         """
         Runs validation on test set using self.validator. The returned dict is expected to contain "fitness" key.
         """
-        metrics = self.validator(self)
+        metrics = self.validator(self, tta=self.tta)
         fitness = metrics.pop('fitness', -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness

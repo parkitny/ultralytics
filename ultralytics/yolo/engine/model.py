@@ -90,6 +90,7 @@ class YOLO:
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.tags = []
+        self.tta = False # Test Time Augmentation
         self.fitness_weights = [0,0,0.1,0.9] # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         model = str(model).strip()  # strip spaces
 
@@ -343,6 +344,9 @@ class YOLO:
     def set_tags(self, tags):
         self.tags = tags
         
+    def set_tta(self, tta):
+        self.tta = tta
+        
     def set_fitness_weights(self, weights):
         self.fitness_weights = weights
         
@@ -377,6 +381,7 @@ class YOLO:
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.tags = self.tags
         self.trainer.fitness_weights = self.fitness_weights
+        self.trainer.tta = self.tta
         self.trainer.train()
         # Update model and cfg after training
         if RANK in (-1, 0):
