@@ -153,7 +153,6 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            tta = True
             # Inference
             with dt[1]:
                 if tta:
