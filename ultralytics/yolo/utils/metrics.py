@@ -434,7 +434,7 @@ def compute_ap(recall, precision):
     return ap, mpre, mrec
 
 
-def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), names=(), eps=1e-16, prefix=''):
+def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), names=(), eps=1e-16, prefix='', beta=1):
     """
     Computes the average precision per class for object detection evaluation.
 
@@ -498,7 +498,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), na
                 py.append(np.interp(px, mrec, mpre))  # precision at mAP@0.5
 
     # Compute F1 (harmonic mean of precision and recall)
-    f1 = 2 * p * r / (p + r + eps)
+    f1 = ((1 + beta) * p * r) / ((beta * beta * p) + r + eps)
     names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
     names = dict(enumerate(names))  # to dict
     if plot:
@@ -679,18 +679,19 @@ class DetMetrics(SimpleClass):
         results_dict: Returns a dictionary that maps detection metric keys to their computed values.
     """
 
-    def __init__(self, save_dir=Path('.'), plot=False, names=(), fitness_weights=None) -> None:
+    def __init__(self, save_dir=Path('.'), plot=False, names=(), fitness_weights=None, beta=1) -> None:
         self.save_dir = save_dir
         self.plot = plot
         self.names = names
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.fitness_weights = fitness_weights
+        self.beta = beta
 
     def process(self, tp, conf, pred_cls, target_cls):
         """Process predicted results for object detection and update metrics."""
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
-                               names=self.names)[2:]
+                               names=self.names, beta=self.beta)[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
 

@@ -92,6 +92,7 @@ class YOLO:
         self.tags = []
         self.tta = False # Test Time Augmentation
         self.fitness_weights = [0,0,0.1,0.9] # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        self.beta = 1 # Default for F1
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -350,6 +351,9 @@ class YOLO:
     def set_fitness_weights(self, weights):
         self.fitness_weights = weights
         
+    def set_beta(self, beta):
+        self.beta = beta
+        
     def train(self, **kwargs):
         """
         Trains the model on a given dataset.
@@ -382,6 +386,7 @@ class YOLO:
         self.trainer.tags = self.tags
         self.trainer.fitness_weights = self.fitness_weights
         self.trainer.tta = self.tta
+        self.trainer.beta = self.beta
         self.trainer.train()
         # Update model and cfg after training
         if RANK in (-1, 0):
